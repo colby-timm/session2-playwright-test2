@@ -41,27 +41,39 @@ This document outlines the core functional requirements for the To Do App, a ful
   - A loading indicator is displayed while fetching items on initial load
   - Loading state is cleared when data fetch completes or fails
 
+### FR-6: Set Due Date
+- **Description**: Users shall be able to set a due date and time for each item
+- **Acceptance Criteria**:
+  - A date and time picker is provided in the "Add New Item" form
+  - Users can set a due date and time when creating a new item
+  - Due dates are optional; items can be created without a due date
+  - Due date and time are displayed with each item in the list
+  - Items can be visually distinguished if overdue (past due date/time)
+  - Due dates are sent to the backend and persisted in the database
+
 ## Backend Requirements
 
-### FR-6: Retrieve Items
+### FR-7: Retrieve Items
 - **Description**: The backend shall provide an endpoint to retrieve all items from the database
 - **Acceptance Criteria**:
   - GET `/api/items` endpoint returns a JSON array of all items
-  - Each item contains `id`, `name`, and `created_at` fields
+  - Each item contains `id`, `name`, `due_date` (optional), and `created_at` fields
   - Items are returned in descending order by creation date
+  - Due date is returned in ISO 8601 format (e.g., "2026-02-15T14:30:00Z")
   - Returns HTTP 200 on success
   - Returns HTTP 500 if database query fails
 
-### FR-7: Create Item
+### FR-8: Create Item
 - **Description**: The backend shall provide an endpoint to create a new item in the database
 - **Acceptance Criteria**:
-  - POST `/api/items` endpoint accepts a JSON body with `name` field
+  - POST `/api/items` endpoint accepts a JSON body with `name` field (required) and `due_date` field (optional)
   - Item name is required and must be a non-empty string
-  - Returns HTTP 201 with the newly created item (including `id` and `created_at`)
-  - Returns HTTP 400 if name is missing, invalid, or empty
+  - Due date must be a valid ISO 8601 date-time string if provided
+  - Returns HTTP 201 with the newly created item (including `id`, `due_date`, and `created_at`)
+  - Returns HTTP 400 if name is missing, invalid, empty, or due_date format is invalid
   - Returns HTTP 500 if database write operation fails
 
-### FR-8: Delete Item
+### FR-9: Delete Item
 - **Description**: The backend shall provide an endpoint to delete an item from the database
 - **Acceptance Criteria**:
   - DELETE `/api/items/:id` endpoint deletes an item by ID
@@ -70,23 +82,10 @@ This document outlines the core functional requirements for the To Do App, a ful
   - Returns HTTP 404 if item does not exist
   - Returns HTTP 500 if database delete operation fails
 
-### FR-9: Data Persistence
+### FR-10: Data Persistence
 - **Description**: The application shall persist item data across server requests
 - **Acceptance Criteria**:
   - Items created during a session are accessible in subsequent requests
+  - Due date information is persisted with each item
   - Database is initialized with sample data on startup
   - Database tables are created automatically if they don't exist
-
-## Cross-Functional Requirements
-
-### FR-10: CORS Support
-- **Description**: The backend shall support Cross-Origin Resource Sharing
-- **Acceptance Criteria**:
-  - Frontend application can make requests from a different origin
-  - CORS middleware is configured on the Express backend
-
-### FR-11: Request Logging
-- **Description**: The backend shall log HTTP requests for debugging and monitoring
-- **Acceptance Criteria**:
-  - All HTTP requests are logged to the console
-  - Logs include method, path, status code, and response time
