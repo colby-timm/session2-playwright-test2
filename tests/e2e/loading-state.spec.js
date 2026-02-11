@@ -1,5 +1,6 @@
 const { test, expect } = require('@playwright/test');
 const { TodoPage } = require('./pages/TodoPage');
+const { setupTest } = require('./helpers/testHelpers');
 
 test.describe('Loading Indicator', () => {
   let todoPage;
@@ -9,10 +10,10 @@ test.describe('Loading Indicator', () => {
   });
 
   test('should display loading indicator while items are loading', async ({ page }) => {
-    // Navigate to app (this should trigger loading)
+    // Navigate to app (triggers loading)
     const navigationPromise = todoPage.goto();
     
-    // Try to observe loading indicator (it may be quick)
+    // Get loading indicator locator
     const loadingIndicator = todoPage.getLoadingIndicator();
     
     // Wait for navigation to complete
@@ -47,10 +48,7 @@ test.describe('Loading Indicator', () => {
     const listVisible = await itemsList.isVisible();
     expect(listVisible).toBe(true);
 
-    // Verify we can see items
-    const firstItem = page.locator('[data-testid^="item-"]').first();
-    const firstItemVisible = await firstItem.isVisible().catch(() => false);
-    // At least the container should be visible
+    // Verify the container is visible
     expect(listVisible).toBe(true);
   });
 });

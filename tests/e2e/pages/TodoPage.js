@@ -36,12 +36,25 @@ class TodoPage {
 
     // If due date is provided, set it using the date picker
     if (dueDate) {
-      // Click on the date/time picker input
-      const dateInput = this.page.locator('input[type="datetime-local"]');
-      await dateInput.click();
-      // Type the date in ISO format (browsers expect: YYYY-MM-DDTHH:mm)
-      const dateStr = dueDate.replace('Z', '').split('.')[0]; // Remove Z and milliseconds
-      await dateInput.fill(dateStr);
+      // Find the DateTimePicker input (MUI DateTimePicker renders as a TextField input)
+      // Look for the input that's inside the form with due date label/placeholder
+      const dateInputs = this.page.locator('input[aria-label*="Due"]');
+      const count = await dateInputs.count();
+      
+      if (count > 0) {
+        const dateInput = dateInputs.first();
+        // Scroll into view to ensure it's visible
+        await dateInput.scrollIntoViewIfNeeded();
+        // Wait for it to be enabled and visible
+        await dateInput.waitFor({ state: 'visible' });
+        // Click to open the picker
+        await dateInput.click({ timeout: 5000 });
+        // Type the date value - format should be YYYY-MM-DD HH:mm
+        const dateStr = dueDate.replace('Z', '').replace('T', ' ').split('.')[0];
+        await dateInput.fill(dateStr, { timeout: 5000 });
+        // Press Tab or Enter to confirm
+        await dateInput.press('Tab');
+      }
     }
 
     // Click the Add Item button

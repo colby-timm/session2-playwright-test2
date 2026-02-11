@@ -1,46 +1,23 @@
 const { test, expect } = require('@playwright/test');
 const { TodoPage } = require('./pages/TodoPage');
+const { setupTest, cleanupItem, createItemAndVerify, deleteItemAndVerify } = require('./helpers/testHelpers');
 
 test.describe('Delete Item', () => {
   let todoPage;
 
   test.beforeEach(async ({ page }) => {
-    todoPage = new TodoPage(page);
-    await todoPage.goto();
-    await todoPage.waitForItemsToLoad();
-    
+    todoPage = await setupTest(page);
     // Create an item to delete
-    await todoPage.page.fill('input[name="itemName"]', 'Item to Delete');
-    await todoPage.clickAddButton();
-    await page.waitForTimeout(500);
+    await createItemAndVerify(todoPage, 'Item to Delete');
   });
 
   test.afterEach(async () => {
-    // Cleanup: ensure item is deleted
-    const itemExists = await todoPage.itemExists('Item to Delete');
-    if (itemExists) {
-      try {
-        await todoPage.deleteItem('Item to Delete');
-        await todoPage.page.waitForTimeout(500);
-      } catch {
-        // Item may have already been deleted
-      }
-    }
+    await cleanupItem(todoPage, 'Item to Delete');
   });
 
-  test('should delete item from list', async ({ page }) => {
-    // Verify item exists before deletion
-    let itemExists = await todoPage.itemExists('Item to Delete');
-    expect(itemExists).toBe(true);
-
-    // Click delete button on the item
-    await todoPage.deleteItem('Item to Delete');
-
-    // Wait for deletion to complete
-    await page.waitForTimeout(500);
-
-    // Verify item is removed from list
-    itemExists = await todoPage.itemExists('Item to Delete');
-    expect(itemExists).toBe(false);
+  test('should delete item from list', async () => {
+    // Delete the item and verify it's gone
+    const wasDeleted = await deleteItemAndVerify(todoPage, 'Item to Delete');
+    expect(wasDeleted).toBe(true);
   });
 });

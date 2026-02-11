@@ -1,29 +1,25 @@
 const { test, expect } = require('@playwright/test');
 const { TodoPage } = require('./pages/TodoPage');
+const { setupTest, getInitialItemCount, verifyItemCountUnchanged, cleanupItem } = require('./helpers/testHelpers');
 
 test.describe('Error Handling', () => {
   let todoPage;
 
   test.beforeEach(async ({ page }) => {
-    todoPage = new TodoPage(page);
-    await todoPage.goto();
-    await todoPage.waitForItemsToLoad();
+    todoPage = await setupTest(page);
   });
 
-  test('should display error on invalid form submission', async ({ page }) => {
+  test('should display error on invalid form submission', async () => {
     // Get initial count of items
-    const initialItems = await todoPage.getAllItems();
-    const initialCount = initialItems.length;
+    const initialCount = await getInitialItemCount(todoPage);
     
     // Try clicking Add without any input (empty form)
     await todoPage.clickAddButton();
-    
-    // Wait for potential validation or response
-    await page.waitForTimeout(500);
+    await todoPage.page.waitForTimeout(500);
 
-    // Verify no item was added (list should be same size)
-    const itemsAfter = await todoPage.getAllItems();
-    expect(itemsAfter.length).toBe(initialCount);
+    // Verify no item was added
+    const countUnchanged = await verifyItemCountUnchanged(todoPage, initialCount);
+    expect(countUnchanged).toBe(true);
     
     // Verify input field is still empty
     const inputValue = await todoPage.getInputValue();
@@ -47,6 +43,9 @@ test.describe('Error Handling', () => {
     // Verify deletion was successful
     const itemStillExists = await todoPage.itemExists('Test Item for Deletion');
     expect(itemStillExists).toBe(false);
+
+    // Cleanup (no-op if already deleted)
+    await cleanupItem(todoPage, 'Test Item for Deletion');
   });
 
   test('should allow dismissing error messages', async ({ page }) => {
@@ -72,7 +71,7 @@ test.describe('Error Handling', () => {
       }
     }
     
-    // Even without error display, form should still be functional
+    // Form should still be functional
     expect(true).toBe(true);
   });
 });

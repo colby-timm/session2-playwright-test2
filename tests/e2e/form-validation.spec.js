@@ -1,95 +1,72 @@
 const { test, expect } = require('@playwright/test');
 const { TodoPage } = require('./pages/TodoPage');
+const { setupTest, cleanupItem, getInitialItemCount, verifyItemCountUnchanged } = require('./helpers/testHelpers');
 
 test.describe('Form Validation', () => {
   let todoPage;
 
   test.beforeEach(async ({ page }) => {
-    todoPage = new TodoPage(page);
-    await todoPage.goto();
-    await todoPage.waitForItemsToLoad();
+    todoPage = await setupTest(page);
   });
 
-  test('should reject empty form submission', async ({ page }) => {
-    // Attempt to submit with empty form (don't fill anything)
+  test('should reject empty form submission', async () => {
+    // Attempt to submit with empty form
     await todoPage.clickAddButton();
+    await todoPage.page.waitForTimeout(300);
 
-    // Wait a moment to see if validation error appears
-    await page.waitForTimeout(300);
-
-    // The input should still be empty or error state should be visible
+    // Input should still be empty
     const inputValue = await todoPage.getInputValue();
-    // Either the input is still empty or there's validation preventing submission
     expect(inputValue === '').toBe(true);
   });
 
-  test('should reject whitespace-only item name', async ({ page }) => {
+  test('should reject whitespace-only item name', async () => {
     // Get initial count of items
-    const initialItems = await todoPage.getAllItems();
-    const initialCount = initialItems.length;
+    const initialCount = await getInitialItemCount(todoPage);
     
     // Enter whitespace-only item name
     await todoPage.page.fill('input[name="itemName"]', '   ');
-
-    // Try to submit
     await todoPage.clickAddButton();
+    await todoPage.page.waitForTimeout(500);
 
-    // Wait for potential validation error
-    await page.waitForTimeout(500);
-
-    // Verify no item was added (list should be same size)
-    const itemsAfter = await todoPage.getAllItems();
-    expect(itemsAfter.length).toBe(initialCount);
+    // Verify no item was added
+    const countUnchanged = await verifyItemCountUnchanged(todoPage, initialCount);
+    expect(countUnchanged).toBe(true);
   });
 
-  test('should display validation error message', async ({ page }) => {
+  test('should display validation error message', async () => {
     // Get initial count of items
-    const initialItems = await todoPage.getAllItems();
-    const initialCount = initialItems.length;
+    const initialCount = await getInitialItemCount(todoPage);
     
     // Enter whitespace-only text
     await todoPage.page.fill('input[name="itemName"]', '   ');
-
-    // Try to submit
     await todoPage.clickAddButton();
-
-    // Wait for validation to occur
-    await page.waitForTimeout(500);
+    await todoPage.page.waitForTimeout(500);
 
     // Verify no item was added
-    const itemsAfter = await todoPage.getAllItems();
-    expect(itemsAfter.length).toBe(initialCount);
+    const countUnchanged = await verifyItemCountUnchanged(todoPage, initialCount);
+    expect(countUnchanged).toBe(true);
     
-    // Check that the input field shows error state (aria-invalid or helper text)
+    // Check that the input field shows error state
     const inputElement = todoPage.page.locator('input[name="itemName"]');
     const hasError = await inputElement.evaluate(el => {
-      // Check if input has error attribute
       return el.getAttribute('aria-invalid') === 'true';
     });
     
-    // Either there's visible validation error or form prevented submission
-    expect(hasError || itemsAfter.length === initialCount).toBe(true);
+    // Either there's validation error or submission was prevented
+    expect(hasError || countUnchanged).toBe(true);
   });
 
-  test('should allow form submission with valid item name', async ({ page }) => {
+  test('should allow form submission with valid item name', async () => {
     // Enter valid item name
     await todoPage.page.fill('input[name="itemName"]', 'Valid Item');
-
-    // Submit form
     await todoPage.clickAddButton();
-
-    // Wait for form to process
-    await page.waitForTimeout(500);
+    await todoPage.page.waitForTimeout(500);
 
     // Verify item was added
     const itemExists = await todoPage.itemExists('Valid Item');
     expect(itemExists).toBe(true);
 
     // Cleanup
-    try {
-      await todoPage.deleteItem('Valid Item');
-    } catch {
-      // Item cleanup not critical for test
-    }
+    await cleanupItem(todoPage, 'Valid Item');
   });
 });

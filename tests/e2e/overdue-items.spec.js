@@ -1,37 +1,18 @@
 const { test, expect } = require('@playwright/test');
 const { TodoPage } = require('./pages/TodoPage');
+const { setupTest, cleanupItem } = require('./helpers/testHelpers');
 
 test.describe('Overdue Item Display', () => {
   let todoPage;
 
   test.beforeEach(async ({ page }) => {
-    todoPage = new TodoPage(page);
-    await todoPage.goto();
-    await todoPage.waitForItemsToLoad();
+    todoPage = await setupTest(page);
   });
 
   test.afterEach(async () => {
     // Cleanup: Delete test items
-    const overdueItemExists = await todoPage.itemExists('Overdue Item');
-    const futureItemExists = await todoPage.itemExists('Future Item');
-    
-    if (overdueItemExists) {
-      try {
-        await todoPage.deleteItem('Overdue Item');
-        await todoPage.page.waitForTimeout(500);
-      } catch {
-        // Item cleanup not critical
-      }
-    }
-    
-    if (futureItemExists) {
-      try {
-        await todoPage.deleteItem('Future Item');
-        await todoPage.page.waitForTimeout(500);
-      } catch {
-        // Item cleanup not critical
-      }
-    }
+    await cleanupItem(todoPage, 'Overdue Item');
+    await cleanupItem(todoPage, 'Future Item');
   });
 
   test('should visually distinguish overdue items', async ({ page }) => {
@@ -41,21 +22,14 @@ test.describe('Overdue Item Display', () => {
     const overdueDateStr = pastDate.toISOString().split('T')[0] + 'T10:00';
 
     // Add item with past due date
-    await todoPage.page.fill('input[name="itemName"]', 'Overdue Item');
-    const dateInput = todoPage.page.locator('input[type="datetime-local"]');
-    if (await dateInput.isVisible()) {
-      await dateInput.fill(overdueDateStr);
-    }
-    await todoPage.clickAddButton();
-
-    // Wait for item to appear
+    await todoPage.addItem('Overdue Item', overdueDateStr);
     await page.waitForTimeout(500);
 
     // Verify overdue item is visually distinguished
     const isOverdue = await todoPage.isItemOverdue('Overdue Item');
     expect(isOverdue).toBe(true);
 
-    // Check for OVERDUE badge or text
+    // Check for OVERDUE badge
     const overdueBadge = page.locator(`text=${/OVERDUE/i}`);
     const badgeVisible = await overdueBadge.isVisible().catch(() => false);
     expect(badgeVisible).toBe(true);
@@ -68,14 +42,7 @@ test.describe('Overdue Item Display', () => {
     const futureDateStr = futureDate.toISOString().split('T')[0] + 'T10:00';
 
     // Add item with future due date
-    await todoPage.page.fill('input[name="itemName"]', 'Future Item');
-    const dateInput = todoPage.page.locator('input[type="datetime-local"]');
-    if (await dateInput.isVisible()) {
-      await dateInput.fill(futureDateStr);
-    }
-    await todoPage.clickAddButton();
-
-    // Wait for item to appear
+    await todoPage.addItem('Future Item', futureDateStr);
     await page.waitForTimeout(500);
 
     // Verify future item does NOT have overdue styling

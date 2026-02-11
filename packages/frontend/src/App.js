@@ -25,13 +25,22 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import theme from './theme';
+import * as api from './utils/api';
+import { validateItemName } from './utils/validation';
+import { formatErrorMessage, logError } from './utils/errorHandler';
 import './App.css';
 
+/**
+ * Check if a due date has passed the current time
+ */
 function isOverdue(dueDate) {
   if (!dueDate) return false;
   return dayjs(dueDate).isBefore(dayjs());
 }
 
+/**
+ * Check if a due date is within the next 24 hours but not yet overdue
+ */
 function isOverdueWithin24Hours(dueDate) {
   if (!dueDate) return false;
   const due = dayjs(dueDate);
@@ -39,99 +48,73 @@ function isOverdueWithin24Hours(dueDate) {
   return due.isAfter(now) && due.diff(now, 'hours') <= 24;
 }
 
+/**
+ * Format a date string into a user-friendly display format
+ */
 function formatDate(dateString) {
   if (!dateString) return null;
   return dayjs(dateString).format('MMM D, YYYY h:mm A');
 }
 
 function App() {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [newItem, setNewItem] = useState('');
-  const [newItemDueDate, setNewItemDueDate] = useState(null);
-  const [itemValidationError, setItemValidationError] = useState('');
+  const [items, setItems] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [itemNameInput, setItemNameInput] = useState('');
+  const [itemDueDateInput, setItemDueDateInput] = useState(null);
+  const [itemNameErrorMessage, setItemNameErrorMessage] = useState('');
 
   useEffect(() => {
-    fetchData();
+    loadItems();
   }, []);
 
-  const fetchData = async () => {
+  const loadItems = async () => {
     try {
-      setLoading(true);
-      const response = await fetch('/api/items');
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      const result = await response.json();
-      setData(result);
-      setError(null);
+      setIsLoading(true);
+      const fetchedItems = await api.fetchItems();
+      setItems(fetchedItems);
+      setErrorMessage(null);
     } catch (err) {
-      setError('Failed to fetch data: ' + err.message);
-      console.error('Error fetching data:', err);
+      const message = formatErrorMessage('fetch', err);
+      setErrorMessage(message);
+      logError('Loading items', err);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const validateItemName = (itemName) => {
-    if (!itemName.trim()) {
-      setItemValidationError('Item name cannot be empty');
-      return false;
-    }
-    setItemValidationError('');
-    return true;
-  };
+  const handleAddItemSubmit = async (event) => {
+    event.preventDefault();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateItemName(newItem)) return;
+    const validation = validateItemName(itemNameInput);
+    if (!validation.isValid) {
+      setItemNameErrorMessage(validation.error);
+      return;
+    }
 
     try {
-      const payload = { name: newItem };
-      if (newItemDueDate) {
-        payload.due_date = newItemDueDate.toISOString();
-      }
-
-      const response = await fetch('/api/items', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to add item');
-      }
-
-      const result = await response.json();
-      setData([result, ...data]);
-      setNewItem('');
-      setNewItemDueDate(null);
-      setError(null);
+      const dueDateFormatted = itemDueDateInput ? itemDueDateInput.toISOString() : null;
+      const newItem = await api.createItem(itemNameInput, dueDateFormatted);
+      setItems([newItem, ...items]);
+      setItemNameInput('');
+      setItemDueDateInput(null);
+      setErrorMessage(null);
     } catch (err) {
-      setError('Error adding item: ' + err.message);
-      console.error('Error adding item:', err);
+      const message = formatErrorMessage('add', err);
+      setErrorMessage(message);
+      logError('Adding item', err);
     }
   };
 
-  const handleDelete = async (itemId, itemName) => {
+  const handleDeleteItem = async (itemId, itemName) => {
     try {
-      const response = await fetch(`/api/items/${itemId}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete item');
-      }
-
-      setData(data.filter(item => item.id !== itemId));
-      setError(null);
+      await api.deleteItem(itemId);
+      setItems(items.filter(item => item.id !== itemId));
+      setErrorMessage(null);
     } catch (err) {
-      setError('Error deleting item: ' + err.message);
-      console.error('Error deleting item:', err);
+      const message = formatErrorMessage('delete', err);
+      setErrorMessage(message);
+      logError(`Deleting item: ${itemName}`, err);
     }
   };
 
@@ -150,13 +133,13 @@ function App() {
           Keep track of your tasks
         </Typography>
 
-        {error && (
+        {errorMessage && (
           <Alert 
             severity="error" 
-            onClose={() => setError(null)}
+            onClose={() => setErrorMessage(null)}
             sx={{ mb: 3 }}
           >
-            {error}
+            {errorMessage}
           </Alert>
         )}
 
@@ -164,23 +147,23 @@ function App() {
           <Typography variant="h6" sx={{ mb: 2 }}>
             Add New Item
           </Typography>
-          <Box component="form" onSubmit={handleSubmit}>
+          <Box component="form" onSubmit={handleAddItemSubmit}>
             <Stack spacing={2}>
               <TextField
                 fullWidth
                 name="itemName"
                 label="Item Name"
                 placeholder="Enter item name"
-                value={newItem}
-                onChange={(e) => setNewItem(e.target.value)}
-                error={Boolean(itemValidationError)}
-                helperText={itemValidationError}
+                value={itemNameInput}
+                onChange={(e) => setItemNameInput(e.target.value)}
+                error={Boolean(itemNameErrorMessage)}
+                helperText={itemNameErrorMessage}
               />
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DateTimePicker
                   label="Due Date (Optional)"
-                  value={newItemDueDate}
-                  onChange={setNewItemDueDate}
+                  value={itemDueDateInput}
+                  onChange={setItemDueDateInput}
                   slotProps={{
                     textField: { fullWidth: true },
                   }}
@@ -202,17 +185,17 @@ function App() {
             Items from Database
           </Typography>
           
-          {loading && (
+          {isLoading && (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
               <CircularProgress />
             </Box>
           )}
 
-          {!loading && !error && (
+          {!isLoading && !errorMessage && (
             <>
-              {data.length > 0 ? (
+              {items.length > 0 ? (
                 <List data-testid="items-list">
-                  {data.map((item) => (
+                  {items.map((item) => (
                     <ListItem
                       key={item.id}
                       data-testid={`item-${item.name}`}
@@ -264,7 +247,7 @@ function App() {
                         <IconButton
                           edge="end"
                           aria-label="delete"
-                          onClick={() => handleDelete(item.id, item.name)}
+                          onClick={() => handleDeleteItem(item.id, item.name)}
                           color="error"
                           data-testid={`delete-${item.name}`}
                         >

@@ -3,18 +3,16 @@ const cors = require('cors');
 const morgan = require('morgan');
 const Database = require('better-sqlite3');
 
-// Initialize express app
 const app = express();
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
 
-// Initialize in-memory SQLite database
+// Use in-memory SQLite database for this demo
+// In production, this would connect to a persistent database
 const db = new Database(':memory:');
 
-// Create tables
 db.exec(`
   CREATE TABLE IF NOT EXISTS items (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -24,7 +22,7 @@ db.exec(`
   )
 `);
 
-// Insert some initial data
+// Initialize with sample data
 const initialItems = [
   { name: 'Item 1', due_date: '2026-02-20T10:00:00Z' },
   { name: 'Item 2', due_date: '2026-02-25T14:30:00Z' },
@@ -36,25 +34,28 @@ initialItems.forEach(item => {
   insertStmt.run(item.name, item.due_date);
 });
 
-console.log('In-memory database initialized with sample data');
+console.log('Database initialized with sample data');
 
-// ISO 8601 date format validation
+/**
+ * Validates ISO 8601 datetime format because MySQL and many databases
+ * require consistent date formatting for proper querying and sorting
+ */
 const validateDueDate = (dueDate) => {
   if (!dueDate) return true; // due_date is optional
-  
+
   // ISO 8601 format: YYYY-MM-DDTHH:mm:ssZ or YYYY-MM-DDTHH:mm:ss.sssZ
   const iso8601Regex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?$/;
-  
+
   if (!iso8601Regex.test(dueDate)) {
     return false;
   }
-  
-  // Also verify it's a valid date
+
+  // Verify it's a valid date (not just syntactically correct)
   const date = new Date(dueDate);
   return !isNaN(date.getTime());
 };
 
-// API Routes
+// GET /api/items - Retrieve all items sorted by creation date (newest first)
 app.get('/api/items', (req, res) => {
   try {
     const items = db.prepare('SELECT * FROM items ORDER BY created_at DESC').all();
@@ -65,14 +66,17 @@ app.get('/api/items', (req, res) => {
   }
 });
 
+// POST /api/items - Create a new item with optional due date
 app.post('/api/items', (req, res) => {
   try {
     const { name, due_date } = req.body;
 
+    // Validate name is non-empty string
     if (!name || typeof name !== 'string' || name.trim() === '') {
       return res.status(400).json({ error: 'Item name is required' });
     }
 
+    // Validate due_date format if provided
     if (due_date !== undefined && !validateDueDate(due_date)) {
       return res.status(400).json({ error: 'Invalid due_date format. Use ISO 8601 format (e.g., 2026-02-20T10:00:00Z)' });
     }
@@ -88,10 +92,12 @@ app.post('/api/items', (req, res) => {
   }
 });
 
+// DELETE /api/items/:id - Remove an item by ID
 app.delete('/api/items/:id', (req, res) => {
   try {
     const { id } = req.params;
 
+    // Validate ID is a valid integer
     if (!id || isNaN(parseInt(id))) {
       return res.status(400).json({ error: 'Valid item ID is required' });
     }
