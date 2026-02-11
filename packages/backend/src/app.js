@@ -19,19 +19,40 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS items (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    due_date TEXT
   )
 `);
 
 // Insert some initial data
-const initialItems = ['Item 1', 'Item 2', 'Item 3'];
-const insertStmt = db.prepare('INSERT INTO items (name) VALUES (?)');
+const initialItems = [
+  { name: 'Item 1', due_date: '2026-02-20T10:00:00Z' },
+  { name: 'Item 2', due_date: '2026-02-25T14:30:00Z' },
+  { name: 'Item 3', due_date: null }
+];
+const insertStmt = db.prepare('INSERT INTO items (name, due_date) VALUES (?, ?)');
 
 initialItems.forEach(item => {
-  insertStmt.run(item);
+  insertStmt.run(item.name, item.due_date);
 });
 
 console.log('In-memory database initialized with sample data');
+
+// ISO 8601 date format validation
+const validateDueDate = (dueDate) => {
+  if (!dueDate) return true; // due_date is optional
+  
+  // ISO 8601 format: YYYY-MM-DDTHH:mm:ssZ or YYYY-MM-DDTHH:mm:ss.sssZ
+  const iso8601Regex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?$/;
+  
+  if (!iso8601Regex.test(dueDate)) {
+    return false;
+  }
+  
+  // Also verify it's a valid date
+  const date = new Date(dueDate);
+  return !isNaN(date.getTime());
+};
 
 // API Routes
 app.get('/api/items', (req, res) => {
@@ -46,13 +67,17 @@ app.get('/api/items', (req, res) => {
 
 app.post('/api/items', (req, res) => {
   try {
-    const { name } = req.body;
+    const { name, due_date } = req.body;
 
     if (!name || typeof name !== 'string' || name.trim() === '') {
       return res.status(400).json({ error: 'Item name is required' });
     }
 
-    const result = insertStmt.run(name);
+    if (due_date !== undefined && !validateDueDate(due_date)) {
+      return res.status(400).json({ error: 'Invalid due_date format. Use ISO 8601 format (e.g., 2026-02-20T10:00:00Z)' });
+    }
+
+    const result = insertStmt.run(name, due_date || null);
     const id = result.lastInsertRowid;
 
     const newItem = db.prepare('SELECT * FROM items WHERE id = ?').get(id);
