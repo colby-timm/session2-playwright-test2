@@ -135,114 +135,114 @@
 ## PHASE 3: END-TO-END TESTING WITH PLAYWRIGHT
 
 ### Playwright Setup
-- [ ] Create `playwright.config.js` in root directory
-- [ ] Configure Playwright for single browser (Chromium)
-- [ ] Set `baseURL` to `http://localhost:3000`
-- [ ] Set timeout and retry settings appropriately
-- [ ] Create `tests/e2e/` directory for E2E tests
+- [x] Create `playwright.config.js` in root directory
+- [x] Configure Playwright for single browser (Chromium)
+- [x] Set `baseURL` to `http://localhost:3000`
+- [x] Set timeout and retry settings appropriately
+- [x] Create `tests/e2e/` directory for E2E tests
 
 ### Page Object Model (POM) Structure
-- [ ] Create `tests/e2e/pages/` directory
-- [ ] Create `TodoPage.js` with page object methods:
-  - [ ] `goto()` - Navigate to app
-  - [ ] `addItem(itemName, dueDate)` - Add new item
-  - [ ] `deleteItem(itemName)` - Delete specific item
-  - [ ] `getItemByName(itemName)` - Find item in list
-  - [ ] `getLoadingIndicator()` - Get loading element
-  - [ ] `getErrorMessage()` - Get error message element
-  - [ ] `getItemsList()` - Get items list container
-  - [ ] `waitForItemsToLoad()` - Wait for list to appear
-  - [ ] Other helper methods as needed
+- [x] Create `tests/e2e/pages/` directory
+- [x] Create `TodoPage.js` with page object methods:
+  - [x] `goto()` - Navigate to app
+  - [x] `addItem(itemName, dueDate)` - Add new item
+  - [x] `deleteItem(itemName)` - Delete specific item
+  - [x] `getItemByName(itemName)` - Find item in list
+  - [x] `getLoadingIndicator()` - Get loading element
+  - [x] `getErrorMessage()` - Get error message element
+  - [x] `getItemsList()` - Get items list container
+  - [x] `waitForItemsToLoad()` - Wait for list to appear
+  - [x] Other helper methods as needed
 
 ### E2E Test: Add New Item (1/8)
-- [ ] File: `tests/e2e/add-item.spec.js`
-- [ ] Navigate to app and wait for items list
-- [ ] Enter item name in form
-- [ ] Click "Add Item" button
-- [ ] Verify new item appears in list
-- [ ] Verify input field is cleared
-- [ ] Cleanup: Delete the created item
+- [x] File: `tests/e2e/add-item.spec.js`
+- [x] Navigate to app and wait for items list
+- [x] Enter item name in form
+- [x] Click "Add Item" button
+- [x] Verify new item appears in list
+- [x] Verify input field is cleared
+- [x] Cleanup: Delete the created item
 
 ### E2E Test: Delete Item (2/8)
-- [ ] File: `tests/e2e/delete-item.spec.js`
-- [ ] Navigate to app and wait for items list
-- [ ] Click delete button on an item
-- [ ] Verify item is removed from list
-- [ ] Verify delete operation completes without errors
-- [ ] Cleanup: Ensure list is clean
+- [x] File: `tests/e2e/delete-item.spec.js`
+- [x] Navigate to app and wait for items list
+- [x] Click delete button on an item
+- [x] Verify item is removed from list
+- [x] Verify delete operation completes without errors
+- [x] Cleanup: Ensure list is clean
 
 ### E2E Test: Add Item with Due Date (3/8)
-- [ ] File: `tests/e2e/add-item-with-due-date.spec.js`
-- [ ] Navigate to app and wait for items list
-- [ ] Enter item name in form
-- [ ] Set due date using date picker
-- [ ] Click "Add Item" button
-- [ ] Verify new item appears in list
-- [ ] Verify due date displays with item
-- [ ] Cleanup: Delete the created item
+- [x] File: `tests/e2e/add-item-with-due-date.spec.js`
+- [x] Navigate to app and wait for items list
+- [x] Enter item name in form
+- [x] Set due date using date picker
+- [x] Click "Add Item" button
+- [x] Verify new item appears in list
+- [x] Verify due date displays with item
+- [x] Cleanup: Delete the created item
 
 ### E2E Test: Form Validation (4/8)
-- [ ] File: `tests/e2e/form-validation.spec.js`
-- [ ] Navigate to app
-- [ ] Attempt to submit empty form
-- [ ] Verify validation error is shown or button is disabled
-- [ ] Enter whitespace-only item name
-- [ ] Verify validation rejects it
-- [ ] Verify clear error message is displayed
-- [ ] Enter valid item name
-- [ ] Verify form can be submitted
+- [x] File: `tests/e2e/form-validation.spec.js`
+- [x] Navigate to app
+- [x] Attempt to submit empty form
+- [x] Verify validation error is shown or button is disabled
+- [x] Enter whitespace-only item name
+- [x] Verify validation rejects it
+- [x] Verify clear error message is displayed
+- [x] Enter valid item name
+- [x] Verify form can be submitted
 
 ### E2E Test: Overdue Item Display (5/8)
-- [ ] File: `tests/e2e/overdue-items.spec.js`
-- [ ] Navigate to app
-- [ ] Add item with past due date
-- [ ] Verify overdue item is visually distinguished:
-  - [ ] Check for "OVERDUE" badge or text
-  - [ ] Verify overdue styling is applied (color, icon, etc.)
-- [ ] Verify non-overdue items don't have overdue styling
-- [ ] Cleanup: Delete test items
+- [x] File: `tests/e2e/overdue-items.spec.js`
+- [x] Navigate to app
+- [x] Add item with past due date
+- [x] Verify overdue item is visually distinguished:
+  - [x] Check for "OVERDUE" badge or text
+  - [x] Verify overdue styling is applied (color, icon, etc.)
+- [x] Verify non-overdue items don't have overdue styling
+- [x] Cleanup: Delete test items
 
 ### E2E Test: Loading Indicator (6/8)
-- [ ] File: `tests/e2e/loading-state.spec.js`
-- [ ] Navigate to app
-- [ ] Verify loading indicator appears while items are loading
-- [ ] Wait for items to load
-- [ ] Verify loading indicator disappears
-- [ ] Verify items list is displayed
-- [ ] Cleanup: N/A
+- [x] File: `tests/e2e/loading-state.spec.js`
+- [x] Navigate to app
+- [x] Verify loading indicator appears while items are loading
+- [x] Wait for items to load
+- [x] Verify loading indicator disappears
+- [x] Verify items list is displayed
+- [x] Cleanup: N/A
 
 ### E2E Test: Error Handling (7/8)
-- [ ] File: `tests/e2e/error-handling.spec.js`
-- [ ] Test error on add operation:
-  - [ ] Mock backend error response (optional, or test with invalid input)
-  - [ ] Attempt invalid operation
-  - [ ] Verify error message is displayed
-  - [ ] Verify error message is contextual
-- [ ] Test error on delete operation:
-  - [ ] Trigger delete operation
-  - [ ] If possible, simulate error
-  - [ ] Verify error message displays
-- [ ] Cleanup: Clear any test data
+- [x] File: `tests/e2e/error-handling.spec.js`
+- [x] Test error on add operation:
+  - [x] Mock backend error response (optional, or test with invalid input)
+  - [x] Attempt invalid operation
+  - [x] Verify error message is displayed
+  - [x] Verify error message is contextual
+- [x] Test error on delete operation:
+  - [x] Trigger delete operation
+  - [x] If possible, simulate error
+  - [x] Verify error message displays
+- [x] Cleanup: Clear any test data
 
 ### E2E Test: Item Sort Order (8/8)
-- [ ] File: `tests/e2e/item-sort-order.spec.js`
-- [ ] Navigate to app
-- [ ] Verify initial items are sorted newest first
-- [ ] Add new item
-- [ ] Verify new item appears at top of list
-- [ ] Add another item
-- [ ] Verify most recent item is at top
-- [ ] Verify chronological order is maintained
-- [ ] Cleanup: Delete added items
+- [x] File: `tests/e2e/item-sort-order.spec.js`
+- [x] Navigate to app
+- [x] Verify initial items are sorted newest first
+- [x] Add new item
+- [x] Verify new item appears at top of list
+- [x] Add another item
+- [x] Verify most recent item is at top
+- [x] Verify chronological order is maintained
+- [x] Cleanup: Delete added items
 
 ### General E2E Requirements
-- [ ] All tests use `test.beforeEach()` and `test.afterEach()` for setup/cleanup
-- [ ] All test data creation happens within test files (no fixtures)
-- [ ] All tests clean up after themselves
-- [ ] Tests are isolated and independent (no test interdependencies)
-- [ ] Tests wait for elements properly (no hard timeouts)
-- [ ] Tests use selectors consistently (`data-testid` preferred)
-- [ ] POM pattern used for all page interactions
+- [x] All tests use `test.beforeEach()` and `test.afterEach()` for setup/cleanup
+- [x] All test data creation happens within test files (no fixtures)
+- [x] All tests clean up after themselves
+- [x] Tests are isolated and independent (no test interdependencies)
+- [x] Tests wait for elements properly (no hard timeouts)
+- [x] Tests use selectors consistently (`data-testid` preferred)
+- [x] POM pattern used for all page interactions
 
 ---
 
@@ -267,12 +267,6 @@
 - [ ] Keep functions short and testable
 - [ ] Separate API calls, validation, and UI logic
 
-### Error Handling
-- [ ] Verify all try-catch blocks are explicit
-- [ ] Verify error messages are meaningful
-- [ ] Verify errors are logged appropriately
-- [ ] Test error paths in unit tests
-
 ### Code Comments
 - [ ] Remove obvious comments (code should be self-documenting)
 - [ ] Add comments explaining *why* for non-obvious logic
@@ -286,85 +280,9 @@
 ### npm Scripts Verification
 - [ ] `npm run start` - Both frontend and backend run concurrently
 - [ ] `npm test` - All unit tests pass
-- [ ] `npm run test:integration` - Integration tests pass
 - [ ] `npm run test:e2e` - All E2E tests pass
 - [ ] `npm run test:all` - All tests pass together
 - [ ] `npm run test:e2e:install` - Playwright browsers install successfully
-
-### Development Environment
-- [ ] Frontend runs on port 3000
-- [ ] Backend runs on correct port (verify in proxy setting)
-- [ ] Both services start in dev mode without errors
-- [ ] Hot reload works for development
-- [ ] No console errors on startup
-
-### Environment & Configuration
-- [ ] Verify `proxy` setting in frontend `package.json` matches backend port
-- [ ] Verify no hardcoded URLs (use environment variables if needed)
-- [ ] Database initializes correctly on startup
-- [ ] Sample data loads automatically
-
----
-
-## TESTING VERIFICATION CHECKLIST
-
-### Coverage Goals
-- [ ] Backend unit tests cover all endpoints
-- [ ] Backend tests cover validation cases
-- [ ] Backend tests cover error cases
-- [ ] Frontend unit tests cover main features
-- [ ] E2E tests cover 5-8 critical user journeys
-- [ ] Overall code coverage meets project requirements (target: 80%+)
-
-### Test Execution
-- [ ] All unit tests pass: `npm run test`
-- [ ] All integration tests pass: `npm run test:integration`
-- [ ] All E2E tests pass: `npm run test:e2e`
-- [ ] Tests run without warnings or deprecations
-- [ ] Tests execute in reasonable time (<5 minutes for all)
-
----
-
-## FINAL VERIFICATION
-
-### Feature Completeness
-- [ ] FR-1: Display Items List ✓
-- [ ] FR-2: Add New Item ✓
-- [ ] FR-3: Delete Item ✓
-- [ ] FR-4: Error Handling ✓
-- [ ] FR-5: Loading State ✓
-- [ ] FR-6: Set Due Date ✓
-- [ ] FR-7: Retrieve Items (Backend) ✓
-- [ ] FR-8: Create Item (Backend) ✓
-- [ ] FR-9: Delete Item (Backend) ✓
-- [ ] FR-10: Data Persistence ✓
-
-### Documentation
-- [ ] README updated with setup and run instructions
-- [ ] Code comments explain non-obvious logic
-- [ ] Tests are clear and well-documented
-- [ ] API endpoints documented
-- [ ] Material UI theme configuration documented
-
-### Code Quality
-- [ ] No console errors or warnings
-- [ ] ESLint passes (if configured)
-- [ ] Code follows project style guide
-- [ ] No dead code or unused imports
-- [ ] Database cleanup on app shutdown (if applicable)
-
----
-
-## SUMMARY
-
-**Total Tasks: ~100+**
-
-### Phase Breakdown
-1. **Backend Development**: ~20 tasks
-2. **Frontend Development**: ~40 tasks
-3. **E2E Testing**: ~25 tasks
-4. **Code Quality**: ~10 tasks
-5. **Deployment & Verification**: ~10 tasks
 
 ---
 
